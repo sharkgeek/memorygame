@@ -3,6 +3,15 @@
 <head>
     <title>Memory Game</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .box {
+            background-color: #ccc;
+            height: 100px;
+            width: 100px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,6 +22,70 @@
         <p>Thanks for your guidance, Fady!</p>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        var colors = [];
+        var boxes = [];
+        var numBoxes = 9;
+        var gameInProgress = false;
+
+        function startGame() {
+            colors = [];
+            boxes = [];
+            gameInProgress = true;
+
+            for (var i = 0; i < numBoxes; i++) {
+                var r = Math.floor(Math.random() * 256);
+                var g = Math.floor(Math.random() * 256);
+                var b = Math.floor(Math.random() * 256);
+                var color = "rgb(" + r + ", " + g + ", " + b + ")";
+                colors.push(color);
+            }
+
+            var grid = document.querySelector(".grid");
+            grid.innerHTML = ""; // Clear previous boxes if any
+
+            for (var i = 0; i < numBoxes; i++) {
+                var box = document.createElement("div");
+                box.className = "box";
+                box.dataset.color = colors[i]; // Store color data
+                box.onclick = checkGuess;
+                boxes.push(box);
+                grid.appendChild(box);
+            }
+
+            setTimeout(hideBoxes, 2000);
+        }
+
+        function hideBoxes() {
+            for (var i = 0; i < numBoxes; i++) {
+                boxes[i].style.backgroundColor = "#ccc";
+                boxes[i].onclick = revealColor; // Enable clicking on boxes
+            }
+        }
+
+        function revealColor() {
+            this.style.backgroundColor = this.dataset.color;
+            this.onclick = null; // Disable further clicking on the box
+        }
+
+        function checkGuess() {
+            if (!gameInProgress) {
+                return;
+            }
+
+            var index = boxes.indexOf(this);
+            if (this.style.backgroundColor == this.dataset.color) {
+                this.onclick = null;
+                var remaining = boxes.filter(function(box) {
+                    return box.style.backgroundColor != box.dataset.color;
+                });
+
+                if (remaining.length == 0) {
+                    gameInProgress = false;
+                    alert("You win!");
+                }
+            }
+        }
+    </script>
 </body>
 </html>
