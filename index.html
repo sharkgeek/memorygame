@@ -2,8 +2,19 @@
 <html>
 <head>
     <title>Memory Game</title>
-    <link rel="stylesheet" href="style.css">
     <style>
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            margin-top: 20px;
+        }
+
         .box {
             background-color: #ccc;
             height: 100px;
@@ -16,7 +27,7 @@
 <body>
     <div class="container">
         <h1>Memory Game</h1>
-        <p>Developed by Ahmed</p>
+        <p>Developed by Ahmed Hammam. Supported by Fady</p>
         <div class="grid"></div>
         <button onclick="startGame()">Start Game</button>
         <p>Thanks for your guidance, Fady!</p>
