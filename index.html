@@ -1,102 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Memory Game</title>
+    <title>Memory Enhancer Game</title>
     <style>
-        .container {
+        .game-board div {
+            width: 50px;
+            height: 50px;
+            border: 1px solid black;
+            display: inline-block;
             text-align: center;
-            margin-top: 50px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-gap: 10px;
-            margin-top: 20px;
-        }
-
-        .box {
-            background-color: #ccc;
-            height: 100px;
-            width: 100px;
-            border-radius: 5px;
+            line-height: 50px;
+            margin: 5px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Memory Game</h1>
-        <p>Developed by Ahmed Hammam. Supported by Fady</p>
-        <div class="grid"></div>
-        <button onclick="startGame()">Start Game</button>
-        <p>Thanks for your guidance, Fady!</p>
+    <h2>Level: <span id="level">1</span></h2>
+    <h2>Score: <span id="score">0</span></h2>
+    <h2>Mistakes: <span id="mistakes">0</span></h2>
+    <div id="game-board" class="game-board">
     </div>
+    <p>Developed by Ahmed Hammam. Thanks to Fady for the support!</p>
 
     <script>
-        var colors = [];
-        var boxes = [];
-        var numBoxes = 9;
-        var gameInProgress = false;
+        var level = 1;
+        var score = 0;
+        var mistakes = 0;
+        var currentNumber = 1;
+        var board = document.getElementById('game-board');
+        var levelElement = document.getElementById('level');
+        var scoreElement = document.getElementById('score');
+        var mistakesElement = document.getElementById('mistakes');
 
-        function startGame() {
-            colors = [];
-            boxes = [];
-            gameInProgress = true;
+        function createBoard() {
+            board.innerHTML = '';  // Clear the board
+            currentNumber = 1;    // Reset the current number
+            mistakes = 0;         // Reset the mistakes
+            mistakesElement.textContent = mistakes;
 
-            for (var i = 0; i < numBoxes; i++) {
-                var r = Math.floor(Math.random() * 256);
-                var g = Math.floor(Math.random() * 256);
-                var b = Math.floor(Math.random() * 256);
-                var color = "rgb(" + r + ", " + g + ", " + b + ")";
-                colors.push(color);
+            var numbers = Array.from({ length: level * level }, (_, i) => i + 1);
+
+            // Shuffle the numbers array
+            numbers.sort(() => Math.random() - 0.5);
+
+            // Create the board
+            for (let i = 0; i < level * level; i++) {
+                var square = document.createElement('div');
+                square.textContent = numbers[i];
+                square.dataset.number = numbers[i];
+                board.appendChild(square);
             }
 
-            var grid = document.querySelector(".grid");
-            grid.innerHTML = ""; // Clear previous boxes if any
-
-            for (var i = 0; i < numBoxes; i++) {
-                var box = document.createElement("div");
-                box.className = "box";
-                box.dataset.color = colors[i]; // Store color data
-                box.onclick = checkGuess;
-                boxes.push(box);
-                grid.appendChild(box);
-            }
-
-            setTimeout(hideBoxes, 2000);
-        }
-
-        function hideBoxes() {
-            for (var i = 0; i < numBoxes; i++) {
-                boxes[i].style.backgroundColor = "#ccc";
-                boxes[i].onclick = revealColor; // Enable clicking on boxes
-            }
-        }
-
-        function revealColor() {
-            this.style.backgroundColor = this.dataset.color;
-            this.onclick = null; // Disable further clicking on the box
-        }
-
-        function checkGuess() {
-            if (!gameInProgress) {
-                return;
-            }
-
-            var index = boxes.indexOf(this);
-            if (this.style.backgroundColor == this.dataset.color) {
-                this.onclick = null;
-                var remaining = boxes.filter(function(box) {
-                    return box.style.backgroundColor != box.dataset.color;
+            // Hide the numbers after 5 seconds
+            setTimeout(function () {
+                var squares = board.querySelectorAll('div');
+                squares.forEach(function (square) {
+                    square.textContent = '';
                 });
+            }, 5000);
+        }
 
-                if (remaining.length == 0) {
-                    gameInProgress = false;
-                    alert("You win!");
+        // Click event listener
+        board.addEventListener('click', function (event) {
+            if (event.target.dataset.number) {
+                // Check if the clicked number is the current number
+                if (event.target.dataset.number == currentNumber) {
+                    event.target.textContent = event.target.dataset.number;
+                    event.target.style.pointerEvents = 'none';  // Disable further clicks on this square
+                    score++;
+                    scoreElement.textContent = score;
+
+                    // Check if the player has clicked all numbers in the correct order
+                    if (currentNumber == level * level) {
+                        level++;
+                        levelElement.textContent = level;
+                        createBoard();
+                    } else {
+                        currentNumber++;
+                    }
+                } else {
+                    mistakes++;
+                    mistakesElement.textContent = mistakes;
+                    if (mistakes >= 5) {
+                        alert('Game Over! Your score is ' + score);
+                        level = 1;
+                        score = 0;
+                        scoreElement.textContent = score;
+                        levelElement.textContent = level;
+                        createBoard();
+                    }
                 }
             }
-        }
+        });
+
+        createBoard();
     </script>
 </body>
 </html>
