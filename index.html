@@ -105,3 +105,20 @@
                 this.onclick = null;
                 var remaining = boxes.filter(function(box) {
                     return box.style.backgroundColor != box.dataset.color;
+                });
+
+                if (remaining.length == 0) {
+                    gameInProgress = false;
+                    alert("You win!");
+                }
+            } else {
+                wrongTries++;
+                if (wrongTries >= maxWrongTries) {
+                    gameInProgress = false;
+                    alert("Game over! You reached the maximum number of wrong tries.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
