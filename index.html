@@ -1,100 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Memory Enhancer Game</title>
+    <title>Memory Game</title>
     <style>
-        .game-board div {
-            width: 50px;
-            height: 50px;
-            border: 1px solid black;
-            display: inline-block;
+        .container {
             text-align: center;
-            line-height: 50px;
-            margin: 5px;
+            margin-top: 50px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            margin-top: 20px;
+        }
+
+        .box {
+            background-color: #ccc;
+            height: 100px;
+            width: 100px;
+            border-radius: 5px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h2>Level: <span id="level">1</span></h2>
-    <h2>Score: <span id="score">0</span></h2>
-    <h2>Mistakes: <span id="mistakes">0</span></h2>
-    <div id="game-board" class="game-board">
+    <div class="container">
+        <h1>Memory Game</h1>
+        <p>Developed by Ahmed Hammam. Supported by Fady</p>
+        <label for="expiry-time">Enter the expiry time (in milliseconds):</label>
+        <input type="number" id="expiry-time" min="1000" step="1000" value="5000">
+        <br>
+        <label for="numbers-array">Enter the numbers array (comma-separated):</label>
+        <input type="text" id="numbers-array" placeholder="e.g., 1, 2, 3, 4, 5">
+        <br>
+        <div class="grid"></div>
+        <button onclick="startGame()">Start Game</button>
+        <p>Thanks for your guidance, Fady!</p>
     </div>
-    <p>Developed by Ahmed Hammam. Thanks to Fady for the support!</p>
 
     <script>
-        var level = 1;
-        var score = 0;
-        var mistakes = 0;
-        var currentNumber = 1;
-        var board = document.getElementById('game-board');
-        var levelElement = document.getElementById('level');
-        var scoreElement = document.getElementById('score');
-        var mistakesElement = document.getElementById('mistakes');
+        var colors = [];
+        var boxes = [];
+        var numBoxes = 0;
+        var gameInProgress = false;
+        var wrongTries = 0;
+        var expiryTime = 5000; // Default expiry time in milliseconds
 
-        function createBoard() {
-            board.innerHTML = '';  // Clear the board
-            currentNumber = 1;    // Reset the current number
-            mistakes = 0;         // Reset the mistakes
-            mistakesElement.textContent = mistakes;
+        function startGame() {
+            var expiryTimeInput = document.getElementById("expiry-time");
+            expiryTime = parseInt(expiryTimeInput.value);
 
-            var numbers = Array.from({ length: level * level }, (_, i) => i + 1);
+            var numbersArrayInput = document.getElementById("numbers-array");
+            var numbersArray = numbersArrayInput.value.split(",").map(function(number) {
+                return parseInt(number.trim());
+            });
 
-            // Shuffle the numbers array
-            numbers.sort(() => Math.random() - 0.5);
+            numBoxes = numbersArray.length;
 
-            // Create the board
-            for (let i = 0; i < level * level; i++) {
-                var square = document.createElement('div');
-                square.textContent = numbers[i];
-                square.dataset.number = numbers[i];
-                board.appendChild(square);
+            colors = [];
+            boxes = [];
+            gameInProgress = true;
+            wrongTries = 0;
+
+            for (var i = 0; i < numBoxes; i++) {
+                var color = numbersArray[i];
+                colors.push(color);
             }
 
-            // Hide the numbers after 5 seconds
-            setTimeout(function () {
-                var squares = board.querySelectorAll('div');
-                squares.forEach(function (square) {
-                    square.textContent = '';
-                });
-            }, 5000);
+            var grid = document.querySelector(".grid");
+            grid.innerHTML = ""; // Clear previous boxes if any
+
+            for (var i = 0; i < numBoxes; i++) {
+                var box = document.createElement("div");
+                box.className = "box";
+                box.dataset.color = colors[i]; // Store color data
+                box.onclick = checkGuess;
+                boxes.push(box);
+                grid.appendChild(box);
+            }
+
+            setTimeout(hideBoxes, expiryTime);
         }
 
-        // Click event listener
-        board.addEventListener('click', function (event) {
-            if (event.target.dataset.number) {
-                // Check if the clicked number is the current number
-                if (event.target.dataset.number == currentNumber) {
-                    event.target.textContent = event.target.dataset.number;
-                    event.target.style.pointerEvents = 'none';  // Disable further clicks on this square
-                    score++;
-                    scoreElement.textContent = score;
-
-                    // Check if the player has clicked all numbers in the correct order
-                    if (currentNumber == level * level) {
-                        level++;
-                        levelElement.textContent = level;
-                        createBoard();
-                    } else {
-                        currentNumber++;
-                    }
-                } else {
-                    mistakes++;
-                    mistakesElement.textContent = mistakes;
-                    if (mistakes >= 5) {
-                        alert('Game Over! Your score is ' + score);
-                        level = 1;
-                        score = 0;
-                        scoreElement.textContent = score;
-                        levelElement.textContent = level;
-                        createBoard();
-                    }
-                }
+        function hideBoxes() {
+            for (var i = 0; i < numBoxes; i++) {
+                boxes[i].style.backgroundColor = "#ccc";
+                boxes[i].onclick = revealColor; // Enable clicking on boxes
             }
-        });
+        }
 
-        createBoard();
-    </script>
-</body>
-</html>
+        function revealColor() {
+            this.style.backgroundColor = this.dataset.color;
+            this.onclick = null; // Disable further clicking on the box
+        }
+
+        function checkGuess() {
+            if (!gameInProgress) {
+                return;
+            }
+
+            var index = boxes.indexOf(this);
+            if (this.style.backgroundColor == this.dataset.color) {
+                this.onclick = null;
+                var remaining = boxes.filter(function(box) {
+                    return box.style.backgroundColor != box.dataset.color;
